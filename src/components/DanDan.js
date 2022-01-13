@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 
 const DanDan =()=> {
 const [users, setUser] =useState([]);
-const [post, setPost] =useState([]);
+const [posts, setPost] =useState([]);
 const [comment, setComment] =useState([]);
 
 const fetchData =() =>{
@@ -19,16 +19,22 @@ const fetchData =() =>{
       const allDataUsers = allData[0]; 
         const allDataPosts = allData[1]; 
         const allDataComments = allData[2];
+        
+        // add comments to posts they belong to
+        const postsWithComments = allDataPosts.data.map((post) => {
+            const postComments = allDataComments.data.filter((comment) => comment.postId === post.id);
+            return { ...post,comments: postComments }
+        })
 
-        setUser(allDataUsers.data); 
-        setPost(allDataPosts.data);
-        setComment(allDataComments.data); 
+        // add posts with comments to users they belong to
+        const usersWithPosts = allDataUsers.data.map((user) => {
+            const userPosts = postsWithComments.filter((post) => post.userId === user.id)
+            return {...user, posts: userPosts}
+        })
 
-        // console.log(allData);
-        console.log(allDataUsers.data);
-        console.log(allDataPosts);
-        console.log(allDataComments);
-
+        setUser(usersWithPosts); 
+        setPost(postsWithComments);
+        setComment(allDataComments.data);
     })
   )
 }
@@ -38,10 +44,29 @@ useEffect(()=> {
   return (
     <div className="App">
       <div>
-          <h1>All Users</h1>
           <div>
              {users.map((user) => {
-                 return (<h2>{user.name}</h2>);
+                 return (
+                     <div> 
+                        <hr />
+                        <h1 style={{background: 'black', color: 'white'}}>{user.name}</h1>
+                        <h2>Posts</h2>
+                        {user.posts.map((post) => {
+                            return (
+                                <div>
+                                <hr />
+                                    <div>
+                                        <h2>{post.title}</h2>
+                                        <p>{post.body}</p>
+                                        <h3>Comments</h3>
+                                        {post.comments.map((comment) => <p>{comment.body}</p>)};
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                 );
              })}
           </div>
       </div>
